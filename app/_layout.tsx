@@ -1,39 +1,40 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import InitialLayout from "@/components/initialLayout";
+import ClerkAndConvexProvider from "@/providers/ClerkAndConvexProvider";
+import { SplashScreen } from "expo-router";
+import { useFonts } from "expo-font";
+import { useCallback, useEffect } from "react";
+import * as NavigationBar from "expo-navigation-bar";
+import { Platform } from "react-native";
+import { StatusBar } from "expo-status-bar";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+  const [fontsLoaded]=useFonts({
+    "JetBrainsMono-Medium":require("../assets/fonts/JetBrainsMono-Medium.ttf")
+  })
+
+  const onLayoutRootView = useCallback(async()=>{
+    if(fontsLoaded) SplashScreen.hideAsync()
+  },[fontsLoaded])
+
+  useEffect(()=>{
+    if(Platform.OS === "android"){
+      NavigationBar.setBackgroundColorAsync("#000000")
+      NavigationBar.setButtonStyleAsync("light")
     }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+  },[])
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+    <ClerkAndConvexProvider>
+        <SafeAreaProvider>
+          <SafeAreaView style={{flex: 1, backgroundColor: "#000"}} onLayout={onLayoutRootView}>
+            <InitialLayout/>
+          </SafeAreaView>
+        </SafeAreaProvider>
+        <StatusBar style="light"/>
+    </ClerkAndConvexProvider>
+  )
 }
